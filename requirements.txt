@@ -1,7 +1,7 @@
 fastapi
 requests
 langchain-community
-chroma-hnswlib
+chromadb
 streamlit
 FlagEmbedding
 peft
