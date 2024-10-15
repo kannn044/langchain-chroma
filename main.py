@@ -1,5 +1,6 @@
 import os
 import uuid
+import shutil
 from typing import Dict, List
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -25,13 +26,12 @@ text_splitter_L = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_ov
 text_splitter_M = RecursiveCharacterTextSplitter(chunk_size=chunk_size/2, chunk_overlap=chunk_overlap/2)
 text_splitter_S = RecursiveCharacterTextSplitter(chunk_size=chunk_size/4, chunk_overlap=chunk_overlap/4)
 
-def load_documents(dir_name: str):
+def load_documents(dir_name: str,filename :str):
     loader = DirectoryLoader(dir_name, loader_cls=TextLoader, loader_kwargs={"encoding": "utf-8"})
     docs = sorted(loader.load(), key=lambda x: x.metadata["source"].split("/")[-1])
-
     for i, doc in enumerate(docs):
         doc.metadata["title"] = f"knowledge{str(i).zfill(3)}"
-        doc.metadata["filename"] = doc.metadata["source"].split("/")[-1]
+        doc.metadata["filename"] = filename
 
     splits_L = text_splitter_L.split_documents(docs)
     splits_M = text_splitter_M.split_documents(docs)
@@ -45,6 +45,7 @@ def search_langchain(query: str, top_k: int = 5) -> List[Dict]:
     for store in vectorstores:
         matches = store.similarity_search_with_score(query, k=top_k)
         for match in matches:
+            print(match[0])
             obj = {
                 "title": match[0].metadata["title"],
                 "chunk": match[0].page_content,
@@ -79,12 +80,13 @@ async def create_item(request: Request):
     with open(f'document/{filename}', 'w', encoding='utf-8') as f:
         f.write(f"{title}\n\n{description}")
 
-    (L, M, S) = load_documents("document")
+    (L, M, S) = load_documents("document", filename)
     vectorstore_L.add_documents(L)
     vectorstore_M.add_documents(M)
     vectorstore_S.add_documents(S)
 
-    os.rename(f'document/{filename}', f'knowledge_cleaned/{filename}')
+    shutil.copy(f'document/{filename}', f'knowledge_cleaned/{filename}')
+    # os.renames(f'document/{filename}', f'knowledge_cleaned/{filename}')
     return {"message": "Document added successfully"}
 
 # Start the FastAPI server with:
