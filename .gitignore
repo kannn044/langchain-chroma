@@ -1,0 +1,15 @@
+/venv
+/knowledge_cleaned/*
+thwiki-sentseg-small.txt
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore vectorstore data
+/vectorstore_L/
+/vectorstore_M/
+/vectorstore_S/
+
+# Ignore hidden system files
+.DS_Store

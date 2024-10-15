@@ -1,0 +1,51 @@
+import streamlit as st
+import requests
+
+API_URL = "http://localhost:8880"
+
+st.title("Knowledge Management System")
+st.sidebar.header("เมนู")
+
+page = st.sidebar.selectbox("เลือกเมนู", ["เพิ่มความรู้", "ค้นหาความรู้"])
+
+if page == "เพิ่มความรู้":
+    st.header("เพิ่มความรู้ใหม่")
+
+    title = st.text_input("หัวเรื่อง")
+    description = st.text_area("รายละเอียด")
+
+    if st.button("บันทึกความรู้"):
+        response = requests.post(
+            f"{API_URL}/add-documents", 
+            data={"title": title, "description": description}
+        )        
+        if response.status_code == 200:
+            st.success("เพิ่มความรู้เรียบร้อยแล้ว!")
+        else:
+            st.error("เกิดข้อผิดพลาดในการเพิ่มความรู้")
+
+elif page == "ค้นหาความรู้":
+    st.header("ค้นหาความรู้")
+
+    query = st.text_input("กรอกคำค้นหา")
+    top_k = st.slider("จำนวนผลลัพธ์ที่ต้องการ", 1, 10, 5)
+
+    if st.button("ค้นหา"):
+        response = requests.get(
+            f"{API_URL}/similarity_search", 
+            params={"query": query, "top_k": top_k}
+        )
+        
+        if response.status_code == 200:
+            results = response.json().get("results", [])
+            if results:
+                st.write("ผลการค้นหา:")
+                for result in results:
+                    st.subheader(result["title"])
+                    st.write(result["content"])
+                    st.write(f"คะแนน: {result['score']}")
+                    st.write("---")
+            else:
+                st.warning("ไม่พบผลลัพธ์")
+        else:
+            st.error("เกิดข้อผิดพลาดในการค้นหา")
