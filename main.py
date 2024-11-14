@@ -111,7 +111,7 @@ def search_langchain(query: str, top_k: int = 5) -> List[Dict]:
                 "score": reranker.compute_score([query, match[0].page_content]),
                 "content": open(f'knowledge_cleaned/{match[0].metadata["filename"]}', 'r', encoding='utf-8').read()
             }
-            results.append(obj)
+            results.append(obj)   
 
     best_results = {}
     for result in results:
