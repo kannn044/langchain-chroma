@@ -26,6 +26,64 @@ text_splitter_L = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_ov
 text_splitter_M = RecursiveCharacterTextSplitter(chunk_size=chunk_size/2, chunk_overlap=chunk_overlap/2)
 text_splitter_S = RecursiveCharacterTextSplitter(chunk_size=chunk_size/4, chunk_overlap=chunk_overlap/4)
 
+loader = DirectoryLoader('knowledge_cleaned', loader_cls=TextLoader, loader_kwargs={"encoding": "utf-8"})
+docs = sorted(loader.load(), key=lambda x: x.metadata["source"].split("/")[-1])
+for i, doc in enumerate(docs):
+    text = doc.page_content
+    title = f"article{str(i).zfill(3)}"
+    doc.metadata["title"] = title
+    doc.metadata["filename"] = doc.metadata["source"].split("/")[-1]
+    
+splits_L = text_splitter_L.split_documents(docs)
+splits_M = text_splitter_M.split_documents(docs)
+splits_S = text_splitter_S.split_documents(docs)
+
+embedding_function = CustomBGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
+storedb = "./vectorstore_L"
+if os.path.exists(storedb):
+    vectorstore_L: Chroma = Chroma(
+        embedding_function=embedding_function, persist_directory=storedb,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+else:
+    vectorstore_L = Chroma.from_documents(
+        documents=splits_L,
+        persist_directory=storedb,
+        embedding=embedding_function,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+
+storedb = "./vectorstore_M"
+if os.path.exists(storedb):
+    vectorstore_M: Chroma = Chroma(
+        embedding_function=embedding_function, persist_directory=storedb,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+else:
+    vectorstore_M = Chroma.from_documents(
+        documents=splits_M,
+        persist_directory=storedb,
+        embedding=embedding_function,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+storedb = "./vectorstore_S"
+if os.path.exists(storedb):
+    vectorstore_S: Chroma = Chroma(
+        embedding_function=embedding_function, persist_directory=storedb,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+else:
+    vectorstore_S = Chroma.from_documents(
+        documents=splits_S,
+        persist_directory=storedb,
+        embedding=embedding_function,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+    
+vectorstore_L.add_documents(splits_L)
+vectorstore_M.add_documents(splits_M)
+vectorstore_S.add_documents(splits_S)
+    
 def load_documents(dir_name: str,filename :str):
     loader = DirectoryLoader(dir_name, loader_cls=TextLoader, loader_kwargs={"encoding": "utf-8"})
     docs = sorted(loader.load(), key=lambda x: x.metadata["source"].split("/")[-1])
