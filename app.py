@@ -6,7 +6,7 @@ API_URL = "http://localhost:8880"
 st.title("Knowledge Management System")
 st.sidebar.header("เมนู")
 
-page = st.sidebar.selectbox("เลือกเมนู", ["เพิ่มความรู้", "ค้นหาความรู้"])
+page = st.sidebar.selectbox("เลือกเมนู", ["เพิ่มความรู้", "ค้นหาความรู้", "อัปโหลดไฟล์ PDF"])
 
 if page == "เพิ่มความรู้":
     st.header("เพิ่มความรู้ใหม่")
@@ -49,3 +49,19 @@ elif page == "ค้นหาความรู้":
                 st.warning("ไม่พบผลลัพธ์")
         else:
             st.error("เกิดข้อผิดพลาดในการค้นหา")
+
+elif page == "อัปโหลดไฟล์ PDF":
+    st.header("อัปโหลดไฟล์ PDF")
+
+    uploaded_file = st.file_uploader("เลือกไฟล์ PDF", type=["pdf"])
+
+    if st.button("อัปโหลด") and uploaded_file is not None:
+        files = {"file": uploaded_file.getvalue()}
+        response = requests.post(f"{API_URL}/ocr", files=files)
+        
+        if response.status_code == 200:
+            result = response.json()
+            st.write("สรุปเนื้อหาจากไฟล์ PDF:")
+            st.write(result.get("results", "ไม่มีข้อมูลสรุป"))
+        else:
+            st.error("เกิดข้อผิดพลาดในการอัปโหลดไฟล์ PDF")
