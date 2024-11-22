@@ -58,8 +58,9 @@ elif page == "อัปโหลดไฟล์ PDF":
 
     if st.button("อัปโหลด") and uploaded_file is not None:
         files = {"file": uploaded_file.getvalue()}
-        response = requests.post(f"{API_URL}/ocr", files=files)
+        response = requests.post(f"{API_URL_OCR}/ocr", files=files)
         
+        print(response)
         if response.status_code == 200:
             results = response.json().get("results", [])
             st.write("สรุปเนื้อหาจากไฟล์ PDF:")
