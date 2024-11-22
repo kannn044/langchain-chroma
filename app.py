@@ -60,8 +60,8 @@ elif page == "อัปโหลดไฟล์ PDF":
         response = requests.post(f"{API_URL}/ocr", files=files)
         
         if response.status_code == 200:
-            result = response.json()
+            results = response.json().get("results", [])
             st.write("สรุปเนื้อหาจากไฟล์ PDF:")
-            st.write(result.get("results", "ไม่มีข้อมูลสรุป"))
+            st.write(results)
         else:
             st.error("เกิดข้อผิดพลาดในการอัปโหลดไฟล์ PDF")
