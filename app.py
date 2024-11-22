@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 
 API_URL = "http://localhost:8880"
+API_URL_OCR = "http://10.1.0.101:8890/"
 
 st.title("Knowledge Management System")
 st.sidebar.header("เมนู")

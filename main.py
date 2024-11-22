@@ -3,8 +3,7 @@ import uuid
 import shutil
 import tempfile
 from typing import Dict, List
-from fastapi import FastAPI, Request, File, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request
 from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -12,11 +11,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from CustomBGEM3FlagModel import CustomBGEM3FlagModel
 from FlagEmbedding import FlagReranker
 from pdf2image import convert_from_path
-import pytesseract
-from PIL import Image
-import requests
-
-OLLAMA_URL = "http://10.1.0.101:8080/api/chat"
 
 app = FastAPI()
 reranker = FlagReranker("BAAI/bge-reranker-large", use_fp16=True)
@@ -127,66 +121,6 @@ def search_langchain(query: str, top_k: int = 5) -> List[Dict]:
             best_results[filename] = result
 
     return list(best_results.values())
-
-def query_ollama(text):
-    prompt = {
-        "role": "system", 
-        "content": "คุณเป็นเลขาของท่านประธาน หน้าที่ของคุณคือการสรุปเนื้อหาจากข้อความอย่างละเอียดและเป็นระเบียบ กรุณาสรุปเนื้อหาอย่างรอบคอบและแม่นยำ",
-        "role": "user",
-        "content": f"จงสรุปเนื้อหาต่อไปนี้ {text} กรุณาตอบเฉพาะเนื้อหาในข้อความและตอบเป็นภาษาไทย"
-    }
-    
-    json_payload = {
-        "model": "gemma2:27b",
-        "messages": [prompt],
-        "stream": False
-    }
-    
-    # print(json_payload)
-    
-    response = requests.post(OLLAMA_URL, json=json_payload)
-    # print(response)
-    if response.status_code == 200:
-        result = response.json().get("message", {}).get("content", "")
-        # print(result)
-        if result:
-            return result
-        else:
-            return "The AI returned an empty response."
-    else:
-        print("Error:", response.status_code, response.text)
-        return "Sorry, I couldn't get a response from the AI."
-
-@app.post('/ocr')
-async def ocr_pdf(file: UploadFile = File(...)):
-    if not file.filename:
-        return {'error': 'No selected file.'}, 400
-    try:
-        # Create a temporary file to save the uploaded file
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_pdf:
-            tmp_pdf.write(await file.read())
-            pdf_path = tmp_pdf.name
-
-        # Convert the PDF to images
-        images = convert_from_path(pdf_path)
-
-        extracted_text = ''
-
-        # Perform OCR on each image
-        for page_num, image in enumerate(images, start=1):
-            print(f'Processing page {page_num}...')
-            page_text = pytesseract.image_to_string(image, lang='tha')
-            extracted_text += page_text + '\n\n'
-
-        # Clean up the temporary file
-        os.remove(pdf_path)
-        
-        # Query the extracted text with Ollama
-        text = query_ollama(extracted_text)
-        return {'results': text}
-
-    except Exception as e:
-        return {'error': str(e)}, 500
 
 @app.get("/similarity_search")
 def similarity_search(query: str, top_k: int = 5) -> Dict:
