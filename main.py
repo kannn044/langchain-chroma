@@ -4,6 +4,7 @@ import shutil
 import tempfile
 from typing import Dict, List
 from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
 from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -148,5 +149,31 @@ async def create_item(request: Request):
     # os.renames(f'document/{filename}', f'knowledge_cleaned/{filename}')
     return {"message": "Document added successfully"}
 
+@app.post("/add-documents/txtfiles")
+async def create_item(request: Request):
+    form_data = await request.form()
+    title = form_data.get('title')
+    description = form_data.get('description')
+    filename = form_data.get('filename')
+    
+    with open(f'document/{filename}', 'w', encoding='utf-8') as f:
+        f.write(f"{title}\n\n{description}")
+
+    (L, M, S) = load_documents("document", filename)
+    vectorstore_L.add_documents(L)
+    vectorstore_M.add_documents(M)
+    vectorstore_S.add_documents(S)
+
+    shutil.copy(f'document/{filename}', f'knowledge_cleaned/{filename}')
+    # os.renames(f'document/{filename}', f'knowledge_cleaned/{filename}')
+    return {"message": "Document added successfully", "filename": filename}
+
+@app.get("/download-file/{filename}")
+async def download_txt(filename: str):
+    file_path = os.path.join("documents", filename)
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="application/octet-stream", filename=filename)
+    else:
+        return JSONResponse(status_code=404, content={"error": "File not found."})
 # Start the FastAPI server with:
 # uvicorn main:app --host 0.0.0.0 --port 8880
