@@ -40,51 +40,51 @@ splits_L = text_splitter_L.split_documents(docs)
 splits_M = text_splitter_M.split_documents(docs)
 splits_S = text_splitter_S.split_documents(docs)
 
-# embedding_function = CustomBGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
-# storedb = "./vectorstore_L"
-# if os.path.exists(storedb):
-#     vectorstore_L: Chroma = Chroma(
-#         embedding_function=embedding_function, persist_directory=storedb,
-#         collection_metadata={"hnsw:space": "cosine"},
-#     )
-# else:
-#     vectorstore_L = Chroma.from_documents(
-#         documents=splits_L,
-#         persist_directory=storedb,
-#         embedding=embedding_function,
-#         collection_metadata={"hnsw:space": "cosine"},
-#     )
+embedding_function = CustomBGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
+storedb = "./vectorstore_L"
+if os.path.exists(storedb):
+    vectorstore_L: Chroma = Chroma(
+        embedding_function=embedding_function, persist_directory=storedb,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+else:
+    vectorstore_L = Chroma.from_documents(
+        documents=splits_L,
+        persist_directory=storedb,
+        embedding=embedding_function,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
 
-# storedb = "./vectorstore_M"
-# if os.path.exists(storedb):
-#     vectorstore_M: Chroma = Chroma(
-#         embedding_function=embedding_function, persist_directory=storedb,
-#         collection_metadata={"hnsw:space": "cosine"},
-#     )
-# else:
-#     vectorstore_M = Chroma.from_documents(
-#         documents=splits_M,
-#         persist_directory=storedb,
-#         embedding=embedding_function,
-#         collection_metadata={"hnsw:space": "cosine"},
-#     )
-# storedb = "./vectorstore_S"
-# if os.path.exists(storedb):
-#     vectorstore_S: Chroma = Chroma(
-#         embedding_function=embedding_function, persist_directory=storedb,
-#         collection_metadata={"hnsw:space": "cosine"},
-#     )
-# else:
-#     vectorstore_S = Chroma.from_documents(
-#         documents=splits_S,
-#         persist_directory=storedb,
-#         embedding=embedding_function,
-#         collection_metadata={"hnsw:space": "cosine"},
-#     )
+storedb = "./vectorstore_M"
+if os.path.exists(storedb):
+    vectorstore_M: Chroma = Chroma(
+        embedding_function=embedding_function, persist_directory=storedb,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+else:
+    vectorstore_M = Chroma.from_documents(
+        documents=splits_M,
+        persist_directory=storedb,
+        embedding=embedding_function,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+storedb = "./vectorstore_S"
+if os.path.exists(storedb):
+    vectorstore_S: Chroma = Chroma(
+        embedding_function=embedding_function, persist_directory=storedb,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+else:
+    vectorstore_S = Chroma.from_documents(
+        documents=splits_S,
+        persist_directory=storedb,
+        embedding=embedding_function,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
     
-# vectorstore_L.add_documents(splits_L)
-# vectorstore_M.add_documents(splits_M)
-# vectorstore_S.add_documents(splits_S)
+vectorstore_L.add_documents(splits_L)
+vectorstore_M.add_documents(splits_M)
+vectorstore_S.add_documents(splits_S)
     
 def load_documents(dir_name: str,filename :str):
     loader = DirectoryLoader(dir_name, loader_cls=TextLoader, loader_kwargs={"encoding": "utf-8"})
