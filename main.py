@@ -7,11 +7,10 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_community import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from CustomBGEM3FlagModel import CustomBGEM3FlagModel
 from FlagEmbedding import FlagReranker
-from pdf2image import convert_from_path
 
 app = FastAPI()
 reranker = FlagReranker("BAAI/bge-reranker-large", use_fp16=True)
